@@ -2,17 +2,24 @@
 
 > 智能体创建 AI Agent Skills 的完整参考文档，涵盖 CLI Skills 和文档 Skills。
 >
-> **版本**: 2.0.0 | **更新**: 2026-05-05
+> **版本**: 2.1.0 | **更新**: 2026-05-10
 
 ---
 
 ## 目录
 
 - [0. Agent 使用本规范的步骤](#0-agent-使用本规范的步骤)
+- [0.5 与 skill-creator 的 hand-off 索引](#05-与-skill-creator-的-hand-off-索引)
 - [1. SKILL 类型与选择](#1-skill-类型与选择)
 - [2. SKILL.md 规范](#2-skillmd-规范)
+  - [2.0 渐进披露（最重要的设计原则）](#20-渐进披露最重要的设计原则)
+  - [2.1 必备要素](#21-必备要素)
+  - [2.2 description 字段写法规范](#22-description-字段写法规范)
+  - [2.3 完整 SKILL.md 模板](#23-完整-skillmd-模板)
+  - [2.4 文档 SKILL 特定要素](#24-文档-skill-特定要素)
 - [3. 项目结构](#3-项目结构)
 - [4. CLI SKILL 开发](#4-cli-skill-开发)
+  - [4.0 核心约定（语言无关）](#40-核心约定语言无关)
 - [5. 文档 SKILL 开发](#5-文档-skill-开发)
 - [6. 配置管理](#6-配置管理)
 - [7. 错误处理](#7-错误处理)
@@ -28,17 +35,56 @@
 
 ## 0. Agent 使用本规范的步骤
 
-**在创建或修改任何 SKILL 之前，按此顺序执行：**
+> **注意**：本规范不定义 SKILL 的**开发流程**（流程见 skill-creator 官方文档）。
+> 本节列出的是工程规范的**检查顺序**——在 skill-creator 工作流的对应阶段，
+> 按此顺序对照本 SKILL 的章节即可。具体阶段映射见 §0.5。
+
+**写 SKILL.md 时按此顺序对照本规范**：
 
 ```
-1. 读 §1   → 确定 SKILL 类型（CLI / 文档 / 复合）
-2. 读 §2   → 起草 SKILL.md（重点：description 触发词 + output_schema）
-3. 读 §3   → 创建目录结构
-4. 读 §4或§5 → 套用对应模板写实现
-5. 读 §9   → 填写权限声明
-6. 读 §10  → 写最小测试集
-7. 用 §12  → 逐条核对检查清单后提交
+1. 读 §1     → 确定 SKILL 类型（CLI / 文档 / 复合）
+2. 读 §2.0   → 理解渐进披露原则（决定内容放哪一层）
+3. 读 §2     → 起草 SKILL.md（重点：description 触发词 + frontmatter 合规）
+4. 读 §3     → 创建目录结构
+5. 读 §4或§5 → 套用对应模板写实现
+6. 读 §9     → 填写 permissions 与 §9.4 allowed-tools
+7. 读 §10    → 写最小测试集
+8. 用 §12    → 逐条核对检查清单
 ```
+
+---
+
+## 0.5 与 skill-creator 的 hand-off 索引
+
+skill-creator 的每个阶段，都有对应的本 SKILL 章节作为工程规范补充。
+**按下表在阶段切换时主动读取本 SKILL 的对应章节**，不要遗漏。
+
+### 正向 hand-off（skill-creator → 本 SKILL）
+
+| skill-creator 阶段 | hand-off 到本 SKILL |
+|-------------------|------------------|
+| Capture Intent 完成后 | 读 §1 选 SKILL 类型（CLI / docs / hybrid） |
+| Write the SKILL.md | 读 §2.0（渐进披露）、§2.1（必备字段）、§2.2（description 写法） |
+| 配置 frontmatter | 读 §9（permissions）、§9.4（allowed-tools） |
+| 选择 CLI 实现语言 | 读 §4.0（语言无关核心约定）、§4.6（多语言对照） |
+| Test Cases 阶段 | CLI SKILL 读 §10.1（CliRunner 模板）；文档 SKILL 读 §10.2（golden-set） |
+| Iterate 阶段（修 bug） | 读 §7（错误处理）、§8（Output Schema） |
+| 打包前 | 读 §12 质量检查清单 |
+| 版本升级 | 读 §11（Semver + breaking change 流程） |
+| MCP 集成（可选） | 读 §11.4（MCP annotation 对齐） |
+
+### 反向 hand-off（本 SKILL → skill-creator）
+
+| 触发场景 | hand-off 到 skill-creator |
+|---------|------------------------|
+| 需要做需求访谈 / 边界澄清 | "Capture Intent + Interview" 章节 |
+| 需要跑 with-skill / baseline 对比 | "Running and evaluating test cases" |
+| 需要量化 description 触发率 | "Description optimization"（run_loop.py） |
+| 需要打包成 .skill 文件 | "Package and Present"（package_skill.py） |
+| 需要在 Claude.ai / Cowork 适配 | "Claude.ai-specific instructions" / "Cowork-Specific Instructions" |
+
+**核心理念**：skill-creator 是流程引擎，本 SKILL 是工程规范。
+两者**应当同时加载**，单独使用任意一个都会有盲区。
 
 ---
 
@@ -75,98 +121,144 @@
 
 ### 1.3 参考示例
 
-| SKILL | 路径 | 类型 | 特点 |
-|-------|------|------|------|
-| sap-apilog-query | `skills-production/sap-apilog-query` | CLI | Click 框架、扁平结构 |
-| sap-adt-cli | `/home/shrek/projects/sap-abap-cli/skills/sap-adt-cli` | CLI | Click 框架、REST API |
-| lark | `/home/shrek/.agents/skills/lark` | CLI | 模块化、复杂协议 |
-| frontend-design | `.agents/skills/document-skills/frontend-design` | 文档 | 设计规范、最佳实践 |
+可参考 [Anthropic skill-examples 仓库](https://github.com/anthropics/skills) 中的官方示例，涵盖 CLI、文档、复合三种类型的完整实现。
+
+如存在本地参考项目，可查阅 `examples/local-references.md`（如存在）。
 
 ---
 
 ## 2. SKILL.md 规范
 
+### 2.0 渐进披露（最重要的设计原则）
+
+SKILL 内容分三层加载，按"何时被读取"决定内容应该放在哪：
+
+| 层级 | 内容 | 何时加载 | 体量约束 |
+|------|------|---------|---------|
+| L1 metadata | name + description | 始终在 Agent context | description ≤ 1024 字符 |
+| L2 SKILL.md 正文 | 速查规则、决策点、引用指针 | SKILL 触发时整体加载 | 建议 ≤ 500 行 |
+| L3 references/ 或 docs/ | 完整规范、长 API 文档、示例库 | Agent 按需读取 | 不限 |
+
+**判断内容应该放在哪一层**：
+- "Agent 每次都需要看一眼" → L2（SKILL.md）
+- "Agent 偶尔遇到具体问题才需要查" → L3（references/ 或 docs/）
+- 长度超过 500 行的 SKILL.md → 拆分到 L3，SKILL.md 只保留索引
+
+**典型反模式**：把完整 API 参考、错误处理表、命令清单全塞进 SKILL.md，导致 Agent 每次触发都加载几千行无关内容。
+
 ### 2.1 必备要素
 
 每个 SKILL 必须在 `SKILL.md` 中包含以下要素：
 
-```markdown
+- `name`：kebab-case，≤ 64 字符
+- `description`：触发词优先的描述，见 §2.2，≤ 1024 字符，**禁含 `<` 或 `>`**
+- `license`：开源协议（如 MIT）
+- `allowed-tools`：允许使用的工具列表
+- `metadata`：包含所有自定义字段（version、type、permissions、output_schema 等）
+
+```yaml
 ---
-name: <skill-name>
-description: <触发词优先的一句话描述，见 §2.2>
-version: "1.0.0"
-type: <cli|docs|hybrid>
-author: <作者姓名或团队>
-tags: [<tag1>, <tag2>]
-
-# 权限声明（见 §9）
-permissions:
-  read_paths: []
-  write_paths: []
-  network_endpoints: []
-  requires_elevation: false
-
-# 输出 Schema（见 §8）
-output_schema:
-  format: <json|text|mixed>
-  schema_ref: <可选，JSON Schema 文件路径>
-
-# 时效声明（文档 SKILL 必填）
-valid_until: <YYYY-MM-DD 或 "evergreen">
-source_urls: []
+name: "your-skill-name"
+description: |
+  当用户需要 VERB1、VERB2 OBJ 时使用此 SKILL。
+  支持 FEATURE1、FEATURE2。
+  也用于：用户问"典型措辞1"、"典型措辞2"。
+  不适用于：NEGATIVE1、NEGATIVE2。
+license: MIT
+allowed-tools: [Read, Bash]
+metadata:
+  version: "1.0.0"
+  type: cli
+  author: "TEAM_NAME"
+  tags: ["TAG1", "TAG2"]
+  valid_until: "evergreen"
+  source_urls: []
+  output_schema:
+    format: json
+    schema_ref: "references/output-schema.json"
+  permissions:
+    read_paths: ["~/.your-skill-name/"]
+    write_paths: ["~/.your-skill-name/"]
+    network_endpoints: ["https://api.example.com"]
+    requires_elevation: false
+    accesses_env_vars: ["SKILL_TOKEN"]
+  mcp_hints:
+    readOnlyHint: false
+    destructiveHint: false
+    idempotentHint: true
+    openWorldHint: true
 ---
 ```
 
 ### 2.2 description 字段写法规范
 
-**description 是 Agent 做工具路由的核心依据，写法直接影响召回率。**
+description 是 Agent 路由的核心依据，写法直接决定召回率。
 
-写法规则：
-1. **以动词 + 场景列举开头**，不要以名词开头
-2. **包含 1-2 个负例排除**，帮助 Agent 避免误触发
-3. **长度 50-150 字**，过短丢失上下文，过长影响 embedding 质量
-4. **关键词前置**，把最重要的触发词放在前 30 字以内
+**核心规则**：
+1. **以动词 + 场景列举开头**，不以名词开头
+2. **包含 1-2 个负例排除**，帮助避免误触发
+3. **长度 100–300 字为宜**（硬上限 1024 字符），宁可偏长不要遗漏典型触发场景
+4. **关键词前置**：把最重要的触发词放在前 30 字以内
+5. **禁用 `<` 和 `>`**：会被打包验证拒绝（用 `{` `}` 或省略占位符）
+6. **采用偏激进（pushy）写法**：Claude 默认倾向 undertrigger（该用 SKILL 时不用），description 需主动对抗这种倾向。明确列出多种用户措辞、相关概念、隐含场景，而不只是描述功能本身。
 
-**好的 description（动词列举 + 负例排除）**：
-
-```
-当用户需要查询、检索、过滤 SAP API 调用日志时使用此 SKILL。
-支持按时间范围、接口名称、状态码查询，并能导出为 CSV 或 JSON。
-不适用于：实时监控告警、修改日志配置、查询非 SAP 系统的日志。
-```
-
-**差的 description（名词开头，无排除）**：
+**好的 description（CLI 类型，动词列举 + 负例 + pushy 措辞）**：
 
 ```
-SAP API 日志查询工具，封装了日志检索功能。
+当用户需要从 git diff、staged changes、变更描述生成符合 Conventional Commits 规范的提交消息时使用此 SKILL。
+覆盖场景包括：补全 commit 类型前缀（feat/fix/refactor/docs）、根据多文件 diff 推断 scope、生成多行 commit body、追加 BREAKING CHANGE 标注。
+也用于：用户问"这次改动该怎么写 commit"、"帮我写个规范的提交信息"、"按 conventional commits 整理"。
+不适用于：实际执行 git commit、修改 git 配置、合并 PR 操作。
 ```
+
+**好的 description（文档类型，AWS S3 知识库）**：
+
+```
+当用户询问 AWS S3 的 API 用法、bucket 策略、对象生命周期、存储类、跨区域复制、预签名 URL、CORS 配置、加密选项时使用此 SKILL。
+覆盖：boto3 SDK 调用、IAM 权限设计、常见错误码（403/404/SlowDown/RequestTimeout）、成本优化模式、与 CloudFront 集成的最佳实践。
+也用于：用户问"S3 怎么做版本控制"、"分片上传如何实现"、"S3 vs EBS 选哪个"。
+不适用于：实际执行 S3 API 调用（用 aws-cli SKILL）、查询账单。
+```
+
+**差的 description（名词开头、过短、无负例）**：
+
+```
+Git commit 工具，封装了 commit 消息生成功能。
+```
+
+**长度参考**：
+- 官方 skill-creator 自身 description ~95 字（英文）
+- 官方内置 SKILL 描述普遍 80–200 字
+- 上限 1024 字符（quick_validate.py 强制）
 
 ### 2.3 完整 SKILL.md 模板
 
 ```markdown
 ---
 name: example-skill
-description: >
+description: |
   当用户需要执行 X 操作、查询 Y 数据、处理 Z 文件时使用此 SKILL。
   支持批量处理、格式转换、状态检查。
+  也用于：用户问"怎么查 X"、"帮我处理 Z 文件"、"Y 数据在哪里"。
   不适用于：修改系统配置、跨系统同步、需要管理员权限的操作。
-version: "1.0.0"
-type: cli
-author: AI Agent Team
-tags: [example, template]
-
-permissions:
-  read_paths: ["~/.example-skill/"]
-  write_paths: ["~/.example-skill/"]
-  network_endpoints: ["https://api.example.com"]
-  requires_elevation: false
-
-output_schema:
-  format: json
-  schema_ref: "references/output-schema.json"
-
-valid_until: "evergreen"
-source_urls: []
+license: MIT
+allowed-tools: [Read, Bash]
+metadata:
+  version: "1.0.0"
+  type: cli
+  author: AI Agent Team
+  tags: [example, template]
+  valid_until: "evergreen"
+  source_urls: []
+  output_schema:
+    format: json
+    schema_ref: "references/output-schema.json"
+  permissions:
+    read_paths: ["~/.example-skill/"]
+    write_paths: ["~/.example-skill/"]
+    network_endpoints: ["https://api.example.com"]
+    requires_elevation: false
+    accesses_env_vars: ["EXAMPLE_TOKEN"]
 ---
 
 ## 执行规则
@@ -233,16 +325,20 @@ source_urls: []
 
 ```markdown
 ---
-name: api-reference
-description: >
-  当用户询问 XYZ API 的用法、参数含义、请求示例、错误代码时使用此 SKILL。
-  不适用于：调用 API 执行操作（用 CLI SKILL）、查询运行时状态。
-version: "1.0.0"
-type: docs
-
-valid_until: "2026-12-31"
-source_urls:
-  - "https://docs.example.com/api/v2"
+name: {skill-name}
+description: |
+  当用户询问 {领域名称} 的 {概念/用法/示例/错误} 时使用此 SKILL。
+  覆盖：{核心场景1}、{核心场景2}、{核心场景3}。
+  也用于：用户问"{典型措辞1}"、"{典型措辞2}"。
+  不适用于：执行实际操作（用对应 CLI SKILL）、查询运行时状态。
+license: MIT
+allowed-tools: [Read]
+metadata:
+  version: "1.0.0"
+  type: docs
+  valid_until: "2026-12-31"
+  source_urls:
+    - "https://docs.example.com/api/v2"
 ---
 
 ## 执行规则
@@ -334,6 +430,19 @@ source_urls:
 ---
 
 ## 4. CLI SKILL 开发
+
+### 4.0 核心约定（语言无关）
+
+CLI SKILL 的以下约定与实现语言无关，使用 Python/Bash/Node.js/Go 都必须遵守：
+
+- 正常结果 → stdout 的 JSON
+- 错误信息 → stderr 的 JSON
+- exit code 遵守 §7.2 规范
+- 写操作必须支持 `--dry-run` 和 `--yes`
+- 配置加载优先级：命令行参数 > 环境变量 > 文件 > 默认值
+- 帮助文本通过 `--help` 输出
+
+本章后续模板以 Python + Click 为主示例（生态成熟、社区资源最多），其他语言对应方案见 §4.6。
 
 ### 4.1 依赖管理
 
@@ -552,6 +661,18 @@ if __name__ == "__main__":
 | 错误输出 | `click.echo(msg, err=True)` |
 | 进度条 | `click.progressbar(items)` |
 | 分页输出 | `click.echo_via_pager(long_text)` |
+
+### 4.6 其他语言的对应方案
+
+| 语言 | CLI 框架推荐 | 测试框架 |
+|------|------------|---------|
+| Python | Click（默认）/ Typer | pytest + click.testing.CliRunner |
+| Bash | 原生 + getopt | Bats（bats-core） |
+| Node.js | Commander.js / yargs | Vitest / Jest |
+| Go | cobra | testing 标准库 |
+| Rust | clap | cargo test |
+
+无论选哪种，都必须满足 §4.0 的核心约定。
 
 ---
 
@@ -817,17 +938,25 @@ class ErrorResult(TypedDict):
 
 ### 8.2 在 SKILL.md frontmatter 中声明
 
+output_schema 放在 `metadata` 下：
+
 ```yaml
-output_schema:
-  format: json          # json | text | mixed
-  success_fields:
-    - name: status       # 固定 "ok"
-    - name: items        # List[ResourceItem]
-    - name: count        # int
-  error_fields:
-    - name: status       # 固定 "error"
-    - name: code         # int，见 §7.2
-    - name: message      # str
+---
+name: example-skill
+description: "当用户需要... 不适用于..."
+metadata:
+  version: "1.0.0"
+  output_schema:
+    format: json          # json | text | mixed
+    success_fields:
+      - name: status       # 固定 "ok"
+      - name: items        # List[ResourceItem]
+      - name: count        # int
+    error_fields:
+      - name: status       # 固定 "error"
+      - name: code         # int，见 §7.2
+      - name: message      # str
+---
 ```
 
 ### 8.3 复杂场景使用 JSON Schema 文件
@@ -877,21 +1006,28 @@ output_schema:
 
 ### 9.1 权限字段
 
+permissions 放在 `metadata` 下：
+
 ```yaml
-permissions:
-  read_paths:
-    - "~/.example-skill/"      # 配置目录
-    - "/tmp/example-skill/"    # 临时目录
-  write_paths:
-    - "~/.example-skill/"      # 配置目录（写）
-  network_endpoints:
-    - "https://api.example.com"   # 具体域名，不用通配符
-    - "http://proxy.internal:8080"  # 内网代理
-  requires_elevation: false     # 是否需要 sudo / admin 权限
-  can_spawn_processes: false    # 是否会启动子进程
-  accesses_env_vars:
-    - "SKILL_URL"
-    - "SKILL_TOKEN"
+---
+name: example-skill
+description: "当用户需要... 不适用于..."
+metadata:
+  permissions:
+    read_paths:
+      - "~/.example-skill/"      # 配置目录
+      - "/tmp/example-skill/"    # 临时目录
+    write_paths:
+      - "~/.example-skill/"      # 配置目录（写）
+    network_endpoints:
+      - "https://api.example.com"   # 具体域名，不用通配符
+      - "http://proxy.internal:8080"  # 内网代理
+    requires_elevation: false     # 是否需要 sudo / admin 权限
+    can_spawn_processes: false    # 是否会启动子进程
+    accesses_env_vars:
+      - "SKILL_URL"
+      - "SKILL_TOKEN"
+---
 ```
 
 ### 9.2 权限声明原则
@@ -915,6 +1051,29 @@ permissions:
 
 Agent 在调用此 SKILL 前应向用户确认是否接受提权操作。
 ```
+
+### 9.4 allowed-tools（顶层字段，非 metadata 内）
+
+`allowed-tools` 是 frontmatter 顶层合规字段（与 `metadata` 平级），声明 SKILL 允许 Claude 使用的工具集合：
+
+```yaml
+---
+name: my-skill
+description: "当用户需要... 不适用于..."
+allowed-tools: [Read, Bash, Edit]   # 不写则默认允许所有工具
+metadata:
+  version: "1.0.0"
+  type: cli
+---
+```
+
+**最小化原则**：
+- 纯文档 SKILL：通常 `[Read]` 即可
+- CLI SKILL：通常 `[Read, Bash]`
+- 不需要修改文件的 SKILL：**不要**给 `Write` / `Edit`
+- 不需要联网的 SKILL：**不要**给 `WebFetch` / `WebSearch`
+
+注意：`allowed-tools` 与 `metadata.permissions` 互补——前者是 Claude 工具层面的白名单，后者是 SKILL 实际访问的资源（路径、网络端点、环境变量）。两者都应声明。
 
 ---
 
@@ -972,6 +1131,8 @@ class TestErrorHandling:
         result = runner.invoke(cli, ["get", "anything"])
         assert result.exit_code == 1
 ```
+
+非 Python CLI 用 Bats/Vitest/Go testing 写等价的 happy path + 错误码测试即可。
 
 ### 10.2 文档 SKILL 测试（Golden-set 问答对）
 
@@ -1032,7 +1193,7 @@ PATCH：Bug 修复、文档更新、性能优化
 
 ### 11.2 Breaking Change 声明
 
-在 SKILL.md 中维护 `changelog.md`，每次 MAJOR 版本 bump 必须记录：
+在根目录维护 `changelog.md`（与 `README.md` 同级），每次 MAJOR 版本 bump 必须记录：
 
 ```markdown
 # Changelog
@@ -1062,14 +1223,20 @@ PATCH：Bug 修复、文档更新、性能优化
 
 ### 11.4 MCP Annotation 对齐（对接 MCP 生态时参考）
 
-若 SKILL 未来需要暴露为 MCP Tool，在 SKILL.md frontmatter 中预留对齐字段：
+若 SKILL 未来需要暴露为 MCP Tool，在 SKILL.md frontmatter 的 `metadata` 中预留对齐字段：
 
 ```yaml
-mcp_hints:
-  readOnlyHint: false       # true = 只读操作，不修改外部状态
-  destructiveHint: true     # true = 可能不可逆（如 delete）
-  idempotentHint: false     # true = 相同参数多次调用结果一致
-  openWorldHint: true       # true = 会访问外部网络
+---
+name: my-skill
+description: "当用户需要... 不适用于..."
+metadata:
+  version: "1.0.0"
+  mcp_hints:
+    readOnlyHint: false       # true = 只读操作，不修改外部状态
+    destructiveHint: true     # true = 可能不可逆（如 delete）
+    idempotentHint: false     # true = 相同参数多次调用结果一致
+    openWorldHint: true       # true = 会访问外部网络
+---
 ```
 
 ---
@@ -1079,8 +1246,8 @@ mcp_hints:
 ### 12.1 检查清单
 
 **基本要素**：
-- [ ] SKILL.md 包含：name, description（触发词优先写法）, version, type, permissions, output_schema
-- [ ] description 中有动词列举 + 负例排除
+- [ ] SKILL.md 包含：name、description（触发词优先写法）；自定义字段（version、type、permissions、output_schema）均在 `metadata` 下
+- [ ] description 中有动词列举 + 负例排除，不含 `<` 或 `>` 字符
 - [ ] 存在 README.md 用户文档
 - [ ] 目录结构符合所选类型（CLI 用 `docs/`，文档 SKILL 用 `references/`）
 - [ ] 敏感信息（.env, credentials）已加入 .gitignore
@@ -1092,16 +1259,17 @@ mcp_hints:
 - [ ] 正常输出 → stdout（JSON），错误 → stderr（JSON）
 - [ ] JSON 配置文件设置 0600 权限
 - [ ] 配置读取遵循：命令行 > 环境变量 > 文件 > 默认值
-- [ ] 在 SKILL.md 中声明 output_schema（至少 format 字段）
-- [ ] 在 SKILL.md 中声明 permissions（read_paths, write_paths, network_endpoints）
+- [ ] 在 `metadata.output_schema` 中声明（至少 format 字段）
+- [ ] 在 `metadata.permissions` 中声明（read_paths、write_paths、network_endpoints）
+- [ ] `allowed-tools` 已在 frontmatter 顶层声明（见 §9.4）
 - [ ] 有 `tests/test_cli.py`，覆盖 happy path + 写操作保护 + 错误场景
 
 **文档 SKILL 特有**：
 - [ ] references/ 内容组织合理（concepts / patterns / examples / troubleshooting）
 - [ ] 代码示例可运行，标注 Python 版本和 SDK 版本
-- [ ] frontmatter 中有 `valid_until` 和 `source_urls`
+- [ ] frontmatter `metadata` 中有 `valid_until` 和 `source_urls`
 - [ ] 有 `tests/golden-set.yaml`，至少 5 条问答对
-- [ ] 有 changelog.md
+- [ ] 根目录有 `changelog.md`
 
 **通用**：
 - [ ] 版本号遵循 Semver
@@ -1115,7 +1283,7 @@ mcp_hints:
 ### 13.1 CLI SKILL 最小模板
 
 ```
-<skill-name>/
+{skill-name}/
 ├── SKILL.md
 ├── README.md
 ├── .env.example
@@ -1124,34 +1292,35 @@ mcp_hints:
 ├── tests/
 │   └── test_cli.py
 └── scripts/
-    └── <skill_name>.py
+    └── {skill_name}.py
 ```
 
 **SKILL.md 起始内容**：
 
 ```markdown
 ---
-name: <skill-name>
-description: >
-  当用户需要 <动词1>、<动词2> <对象> 时使用此 SKILL。
-  支持 <特性1>、<特性2>。
-  不适用于：<负例1>、<负例2>。
-version: "1.0.0"
-type: cli
-author: <作者>
-tags: []
-
-permissions:
-  read_paths: []
-  write_paths: []
-  network_endpoints: []
-  requires_elevation: false
-  accesses_env_vars: []
-
-output_schema:
-  format: json
-
-valid_until: "evergreen"
+name: {skill-name}
+description: |
+  当用户需要 {动词1}、{动词2} {对象} 时使用此 SKILL。
+  支持 {特性1}、{特性2}。
+  也用于：用户问"{典型措辞1}"、"{典型措辞2}"。
+  不适用于：{负例1}、{负例2}。
+license: MIT
+allowed-tools: [Read, Bash]
+metadata:
+  version: "1.0.0"
+  type: cli
+  author: {作者}
+  tags: []
+  valid_until: "evergreen"
+  permissions:
+    read_paths: []
+    write_paths: []
+    network_endpoints: []
+    requires_elevation: false
+    accesses_env_vars: []
+  output_schema:
+    format: json
 ---
 
 ## 执行规则
@@ -1161,34 +1330,38 @@ valid_until: "evergreen"
 ### 13.2 文档 SKILL 最小模板
 
 ```
-<skill-name>/
+{skill-name}/
 ├── SKILL.md
 ├── README.md
+├── changelog.md
 ├── tests/
 │   └── golden-set.yaml
 └── references/
     ├── concepts.md
     ├── patterns.md
-    ├── examples.md
-    └── changelog.md
+    └── examples.md
 ```
 
 **SKILL.md 起始内容**：
 
 ```markdown
 ---
-name: <skill-name>
-description: >
-  当用户询问 <领域名称> 的 <概念/用法/示例/错误> 时使用此 SKILL。
+name: {skill-name}
+description: |
+  当用户询问 {领域名称} 的 {概念/用法/示例/错误} 时使用此 SKILL。
+  覆盖：{核心场景1}、{核心场景2}。
+  也用于：用户问"{典型措辞1}"、"{典型措辞2}"。
   不适用于：执行实际操作（用对应 CLI SKILL）。
-version: "1.0.0"
-type: docs
-author: <作者>
-tags: []
-
-valid_until: "<YYYY-MM-DD>"
-source_urls:
-  - "<官方文档 URL>"
+license: MIT
+allowed-tools: [Read]
+metadata:
+  version: "1.0.0"
+  type: docs
+  author: {作者}
+  tags: []
+  valid_until: "{YYYY-MM-DD}"
+  source_urls:
+    - "{官方文档 URL}"
 ---
 
 ## 执行规则
@@ -1200,7 +1373,7 @@ source_urls:
 - 常见问题与排查
 
 ### 知识时效
-基于 <产品/API> <版本>，valid_until 为 <日期>。
+基于 {产品/API} {版本}，valid_until 为 {日期}。
 ```
 
 ---
@@ -1214,21 +1387,14 @@ source_urls:
 | [Click 官方文档](https://click.palletsprojects.com/) | Python CLI 框架 |
 | [Typer 官方文档](https://typer.tiangolo.com/) | 现代 type hints CLI |
 | [uv 官方文档](https://docs.astral.sh/uv/) | Python 包管理工具（推荐） |
-| [MCP 规范](https://modelcontextprotocol.io/docs/) | Model Context Protocol |
+| [MCP 规范](https://modelcontextprotocol.io/) | Model Context Protocol |
 | [JSON Schema](https://json-schema.org/) | 输出 Schema 规范参考 |
+| [Anthropic skill-examples](https://github.com/anthropics/skills) | 官方 SKILL 示例仓库 |
 
-### B. 示例项目
-
-| 项目 | 路径 | 类型 |
-|------|------|------|
-| sap-apilog-query | `skills-production/sap-apilog-query` | CLI（扁平） |
-| sap-adt-cli | `/home/shrek/projects/sap-abap-cli/skills/sap-adt-cli` | CLI（扁平） |
-| lark | `/home/shrek/.agents/skills/lark` | CLI（模块化） |
-| frontend-design | `.agents/skills/document-skills/frontend-design` | 文档 |
-
-### C. 版本历史
+### B. 版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| 2.1.0 | 2026-05-10 | **修复**：frontmatter 模板对齐官方 quick_validate.py（自定义字段嵌入 metadata）；**修复**：description 占位符改用 `{}`（避免 `< >` 触发打包验证错误）；**优化**：description 写法指引（长度 100–300 字、pushy 写法、对抗 undertrigger）；**新增**：§2.0 渐进披露原则、§4.0 语言无关核心约定、§4.6 多语言对照、§9.4 allowed-tools 字段；**去私有化**：移除全部私有示例和本地路径引用，替换为通用领域示例（Git commit、AWS S3）；**去除**：archives/ 旧版本归档目录 |
 | 2.0.0 | 2026-05-05 | 新增：Agent 执行步骤（§0）、description 触发词规范（§2.2）、输出 Schema（§8）、权限声明（§9）、测试规范（§10）、版本化策略（§11）、MCP Annotation 对齐；优化：目录名歧义（CLI 用 docs/，文档用 references/）、错误处理统一 JSON 格式、依赖管理改用 uv |
 | 1.0.0 | 2026-05-05 | 初始版本，整合 CLI 和文档 SKILL 规范 |
