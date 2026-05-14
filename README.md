@@ -91,7 +91,7 @@ skill-dev-standard/
 ├── README.md                         # This file: installation, config, quick start
 ├── README.zh-CN.md                   # Chinese translation
 ├── changelog.md                      # Full version history with migration notes
-├── tests/
+├── evals/
 │   └── golden-set.yaml               # Q&A pairs for knowledge coverage verification
 └── references/                       # L3 on-demand: 7 focused reference files
     ├── skillmd-authoring.md          # §2: progressive disclosure, required elements, description style, full template

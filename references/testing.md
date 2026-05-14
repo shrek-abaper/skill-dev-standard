@@ -66,7 +66,7 @@ For non-Python CLIs, write equivalent happy path + error code tests using Bats/V
 Maintain a minimal set of Q&A pairs for the docs SKILL to verify knowledge coverage quality:
 
 ```yaml
-# tests/golden-set.yaml
+# evals/golden-set.yaml
 skill: api-reference
 version: "1.0.0"
 cases:
@@ -93,7 +93,8 @@ cases:
 ├── tests/
 │   ├── test_cli.py          # CLI unit tests (CliRunner)
 │   ├── test_config.py       # Config loading tests
-│   ├── test_schemas.py      # Output schema compliance tests
+│   └── test_schemas.py      # Output schema compliance tests
+├── evals/
 │   └── golden-set.yaml      # Docs SKILL Q&A pairs (docs SKILL only)
 └── pyproject.toml           # includes [tool.pytest.ini_options]
 ```

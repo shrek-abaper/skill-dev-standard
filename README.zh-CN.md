@@ -91,7 +91,7 @@ skill-dev-standard/
 ├── README.md                         # 英文版文档（主语言）
 ├── README.zh-CN.md                   # 本文件：中文版文档
 ├── changelog.md                      # 完整版本历史与迁移说明
-├── tests/
+├── evals/
 │   └── golden-set.yaml               # 知识覆盖验证问答对
 └── references/                       # L3 按需加载：7 个聚焦参考文件
     ├── skillmd-authoring.md          # §2：渐进披露、必备要素、description 写法、完整模板

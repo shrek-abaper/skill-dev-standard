@@ -93,7 +93,7 @@ metadata:
 - [ ] `references/` content is organized logically (concepts / patterns / examples / troubleshooting)
 - [ ] Code examples are runnable and annotated with Python and SDK versions
 - [ ] `metadata` in frontmatter includes `valid_until` and `source_urls`
-- [ ] `tests/golden-set.yaml` exists with at least 5 Q&A pairs
+- [ ] `evals/golden-set.yaml` exists with at least 5 Q&A pairs
 - [ ] `changelog.md` exists at the root
 
 **Universal**:
@@ -162,7 +162,7 @@ metadata:
 ├── README.md
 ├── changelog.md
 ├── assets/             # optional: images, data samples, and other output resources
-├── tests/
+├── evals/
 │   └── golden-set.yaml
 └── references/
     ├── concepts.md
