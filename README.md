@@ -1,138 +1,157 @@
+[中文](README.zh-CN.md)
+
 # skill-dev-standard
 
-> 工程级 SKILL 开发规范，与 Anthropic 官方 [skill-creator](https://github.com/anthropics/skills) 协同使用。
+> Engineering-grade SKILL development standards, designed to complement the official Anthropic [skill-creator](https://github.com/anthropics/skills).
 
-## 定位
+## Positioning
 
-本 SKILL **不替代** skill-creator，而是其**工程化补充**。两者职责互补：
+This SKILL does **not replace** skill-creator — it is its **engineering complement**. Their responsibilities are complementary:
 
-| 关注层面 | 由谁负责 |
-|---------|---------|
-| 开发流程（访谈、测试、评估、迭代、打包） | **skill-creator**（官方） |
-| 设计哲学（Progressive Disclosure、写作风格） | **skill-creator**（官方） |
-| 评估工具链（eval-viewer、run_loop、benchmark） | **skill-creator**（官方） |
-| Claude.ai / Cowork 环境适配 | **skill-creator**（官方） |
-| CLI SKILL 工程规范（错误码、输出协议、配置、权限） | **本 SKILL** |
-| Output Schema（SKILL 间合约） | **本 SKILL** |
-| 文档 SKILL 时效与质量（valid_until、golden-set） | **本 SKILL** |
-| frontmatter 合规细节（metadata 嵌套、allowed-tools） | **本 SKILL** |
-| Semver 版本化与 Breaking change 流程 | **本 SKILL** |
-| 质量检查清单（CLI / docs / 通用三栏） | **本 SKILL** |
+| Concern | Owner |
+|---------|-------|
+| Dev workflow (interviews, testing, eval, iteration, packaging) | **skill-creator** (official) |
+| Design philosophy (Progressive Disclosure, description style) | **skill-creator** (official) |
+| Eval toolchain (eval-viewer, run_loop, benchmark) | **skill-creator** (official) |
+| Claude.ai / Cowork environment adaptation | **skill-creator** (official) |
+| CLI SKILL engineering standards (exit codes, output protocol, config, permissions) | **This SKILL** |
+| Output Schema (inter-SKILL contracts) | **This SKILL** |
+| Docs SKILL freshness & quality (`valid_until`, golden-set) | **This SKILL** |
+| Frontmatter compliance details (`metadata` nesting, `allowed-tools`) | **This SKILL** |
+| Semver versioning & breaking change workflow | **This SKILL** |
+| Quality checklist (CLI / docs / universal three-column) | **This SKILL** |
 
-**应当同时加载**——单独使用任意一个都会有盲区。
+**Both should be loaded simultaneously** — using either one alone will leave blind spots.
 
-## 安装
+## Installation
 
-**方式 1：打包安装（推荐用于分发）**
+**Option 1: Packaged install (recommended for distribution)**
 
 ```bash
-# 在本仓库根目录用 skill-creator 提供的脚本打包
+# Package from repo root using skill-creator's script
 python /path/to/skill-creator/scripts/package_skill.py .
 
-# 安装到本地 Agent skills 目录
+# Install to local Agent skills directory
 cp skill-dev-standard.skill ~/.claude/skills/
-# 或对应你 Agent 工具的 skills 路径（OpenCode / Cursor 等）
+# Or the skills path for your Agent tool (OpenCode / Cursor, etc.)
 ```
 
-**方式 2：直接克隆（推荐用于本地开发）**
+**Option 2: Direct clone (recommended for local development)**
 
 ```bash
 git clone <repo-url> ~/.claude/skills/skill-dev-standard
 ```
 
-## 推荐配置（强烈建议）
+## Recommended Configuration (Strongly Encouraged)
 
-为避免 Claude 因 undertrigger 倾向只加载其中一个 SKILL，在你的 `~/.claude/CLAUDE.md`（用户级系统提示）中追加以下内容。
+To prevent Claude from undertriggering and loading only one SKILL, append the following to your `~/.claude/CLAUDE.md` (user-level system prompt).
 
-**直接复制下面这段到 `~/.claude/CLAUDE.md`：**
+**Copy this block directly into `~/.claude/CLAUDE.md`:**
 
 ```markdown
-## SKILL 开发工作流（强制）
+## SKILL Development Workflow (Mandatory)
 
-创建、修改、审查、打包任何 SKILL 时：
+When creating, modifying, reviewing, or packaging any SKILL:
 
-1. 必须同时加载两个 SKILL：
-   - skill-creator（流程引擎 + 评估工具链）
-   - skill-dev-standard（工程规范 + 检查清单）
+1. ALWAYS load both SKILLs together:
+   - skill-creator (workflow engine + eval toolchain)
+   - skill-dev-standard (engineering standards + quality checklist)
 
-2. 阶段切换时主动查表：每个阶段读 skill-dev-standard 的 §0.5 hand-off 索引，
-   确认两个 SKILL 各自负责的章节，不要只读其中一个
+2. Consult the hand-off index at every stage transition: read §0.5 in skill-dev-standard
+   to confirm which sections each SKILL owns. Do not read only one of them.
 
-3. 打包前强制双重验证：
-   - 跑 skill-creator 的 package_skill.py（合规性）
-   - 对照 skill-dev-standard 的 §12 检查清单（工程质量）
+3. Dual validation before packaging:
+   - Run skill-creator's package_skill.py (compliance check)
+   - Walk through skill-dev-standard's §12 quality checklist (engineering quality)
 ```
 
-这是系统级指令，比 SKILL description 暗示更可靠。Claude Code / OpenCode 每次会话开始都会读取 CLAUDE.md，可保证两个 SKILL 都被加载。
+This is a system-level directive, more reliable than SKILL description hints. Claude Code / OpenCode reads `CLAUDE.md` at the start of every session, ensuring both SKILLs are loaded.
 
 ## Quick Start
 
-新建一个 CLI SKILL 的最短路径：
+Shortest path to create a new CLI SKILL:
 
-1. 让 Claude 同时加载 skill-creator + skill-dev-standard
-2. skill-creator 走 Capture Intent → Interview → 起草 SKILL.md
-3. **hand-off 到本 SKILL**：
-   - 读 §1 选 SKILL 类型 → CLI
-   - 读 §2.2 写 description（动词列举 + 多场景 + 偏 pushy）
-   - 读 §4 套 Click 模板（或 §4.6 选其他语言方案）
-   - 读 §9 填 permissions、§9.4 填 allowed-tools
-4. skill-creator 跑 evals 迭代
-5. 用 §12 检查清单验收 → skill-creator 调 `package_skill.py` 打包
+1. Have Claude load both skill-creator + skill-dev-standard
+2. skill-creator runs Capture Intent → Interview → drafts SKILL.md
+3. **Hand off to this SKILL**:
+   - Read SKILL.md §1 to select SKILL type → CLI
+   - Read `references/skillmd-authoring.md` §2.2 to write the description (verb enumeration + multi-scenario + pushy style)
+   - Read `references/cli-templates.md` §4 for the Click template (or §4.6 for other language options)
+   - Read `references/permissions.md` §9 to fill in `permissions`; §9.4 for `allowed-tools`
+4. skill-creator runs evals and iterates
+5. Use `references/quality-and-release.md` §12 checklist for acceptance → skill-creator calls `package_skill.py` to package
 
-完整 hand-off 索引见 [`references/standard.md` §0.5](references/standard.md)。
+Full hand-off index: see [SKILL.md §0.5](SKILL.md).
 
-## 内容结构
+## Content Structure
 
 ```
 skill-dev-standard/
-├── SKILL.md              # 速查规范：定位声明 + 与 skill-creator 的衔接 + 关键规范速查
-├── README.md             # 本文件：安装、配置、Quick start
-└── references/
-    └── standard.md       # 完整规范（v2.1.0，13 章 + 附录）
+├── SKILL.md                          # L2 routing layer: positioning + §0.5 hand-off index + §1 type decision + key spec quick-ref + Reference Files Index
+├── README.md                         # This file: installation, config, quick start
+├── README.zh-CN.md                   # Chinese translation
+├── changelog.md                      # Full version history with migration notes
+├── tests/
+│   └── golden-set.yaml               # Q&A pairs for knowledge coverage verification
+└── references/                       # L3 on-demand: 7 focused reference files
+    ├── skillmd-authoring.md          # §2: progressive disclosure, required elements, description style, full template
+    ├── project-structure.md          # §3: four directory structure diagrams + §3.5 assets/ spec
+    ├── cli-templates.md              # §4: core conventions, Click/Typer full templates, multi-language comparison
+    ├── docs-development.md           # §5: content organization, quality standards, freshness mechanism, doc templates
+    ├── cli-runtime.md                # §6/§7/§8: config management, error handling, Output Schema
+    ├── permissions.md                # §9: permissions field + §9.4 allowed-tools
+    ├── testing.md                    # §10: CliRunner unit tests, golden-set Q&A pairs
+    └── quality-and-release.md       # §11/§12/§13/Appendix: versioning, quality checklist, minimal templates
 ```
 
-## 关键规范一览
+## Key Specs at a Glance
 
-| 章节 | 内容 |
-|------|------|
-| §0 | Agent 检查顺序（工程规范的检查点，不是开发流程） |
-| §0.5 | 与 skill-creator 的 hand-off 索引 |
-| §1 | SKILL 类型决策（CLI / docs / hybrid） |
-| §2 | SKILL.md 规范（含 §2.0 渐进披露、§2.2 description 写法） |
-| §3 | 项目结构（含 CLI 用 `docs/` vs 文档用 `references/` 命名约定） |
-| §4 | CLI SKILL 开发（§4.0 语言无关核心约定 + Click/Typer 模板 + §4.6 多语言对照） |
-| §5 | 文档 SKILL 开发（含时效机制 valid_until / source_urls） |
-| §6 | 配置管理（优先级 + dataclass 模板） |
-| §7 | 错误处理（exit code 规范 + JSON 格式） |
-| §8 | Output Schema（TypedDict + JSON Schema） |
-| §9 | 权限与沙箱（§9.1–§9.3 permissions、§9.4 allowed-tools） |
-| §10 | 测试规范（CliRunner + golden-set） |
-| §11 | 版本化（Semver + Breaking change 流程 + MCP annotation 对齐） |
-| §12 | 质量检查清单（CLI / docs / 通用三栏） |
-| §13 | 最小模板（CLI / docs 两套） |
+| Section | Content | Reference File |
+|---------|---------|----------------|
+| §0 / §0.5 | Agent check order + hand-off index | `SKILL.md` |
+| §1 | SKILL type decision (CLI / docs / hybrid) | `SKILL.md` §1 |
+| §2 | SKILL.md spec (progressive disclosure, description style, full template) | `references/skillmd-authoring.md` |
+| §3 | Project structure (four structure diagrams + §3.5 assets/ spec) | `references/project-structure.md` |
+| §4 | CLI SKILL development (§4.0 language-agnostic core conventions + Click/Typer templates + §4.6 multi-language) | `references/cli-templates.md` |
+| §5 | Docs SKILL development (incl. freshness: `valid_until` / `source_urls`) | `references/docs-development.md` |
+| §6 | Config management (priority + dataclass template) | `references/cli-runtime.md` |
+| §7 | Error handling (exit code spec + JSON format) | `references/cli-runtime.md` |
+| §8 | Output Schema (TypedDict + JSON Schema) | `references/cli-runtime.md` |
+| §9 | Permissions & sandbox (§9.1–§9.3 permissions, §9.4 allowed-tools) | `references/permissions.md` |
+| §10 | Testing standards (CliRunner + golden-set) | `references/testing.md` |
+| §11 | Versioning (Semver + breaking change workflow + MCP annotation alignment) | `references/quality-and-release.md` |
+| §12 | Quality checklist (CLI / docs / universal three columns) | `references/quality-and-release.md` |
+| §13 | Minimal templates (CLI + docs) | `references/quality-and-release.md` |
 
 ## Changelog
 
+### v2.2.0 — 2026-05-14
+
+**Added assets/ engineering spec**:
+
+- **Added**: §3.5 `assets/` directory spec — four-directory responsibility boundaries (`scripts/` execute, `references/` understand, `docs/` reference, `assets/` embed/deliver)
+- **Added**: Placeholder convention (`__VARIABLE__` double-underscore, aligned with skill-creator official), SKILL.md reference table pattern, size constraints (< 100 KB/file), security requirements (no real credentials/PII)
+- **Added**: §0.5 hand-off index gains "needs output template/config scaffolding" trigger
+- **Updated**: §3.1–§3.4 structure diagrams all add `assets/` optional entry; §12 checklist adds assets/ acceptance items; §13 templates add `assets/` row
+
 ### v2.1.0 — 2026-05-10
 
-**通用化重构 + frontmatter 合规修复**：
+**Generalization refactor + frontmatter compliance fix**:
 
-- **修复**：frontmatter 模板对齐官方 `quick_validate.py`（自定义字段全部嵌入 `metadata:` 嵌套）
-- **修复**：description 占位符改用 `{}`（避免 `<>` 触发打包验证错误）
-- **新增**：§0.5 与 skill-creator 的 hand-off 索引、§2.0 渐进披露原则、§4.0 语言无关核心约定、§4.6 多语言对照、§9.4 allowed-tools 字段
-- **优化**：description 写法指引（100–300 字、pushy 写法、对抗 undertrigger）
-- **去私有化**：移除全部 SAP 业务示例和本地路径引用，替换为通用领域示例（Git commit 生成器、AWS S3 知识库）
-- **去除**：`archives/` 旧版本归档目录（依赖 git 历史保留）
-
-完整变更见 `references/standard.md` 附录 C。
+- **Fixed**: frontmatter template aligned to official `quick_validate.py` (all custom fields nested under `metadata`)
+- **Fixed**: description placeholder changed to `{}` (avoids `< >` triggering packaging validation errors)
+- **Added**: §0.5 hand-off index with skill-creator, §2.0 progressive disclosure principle, §4.0 language-agnostic core conventions, §4.6 multi-language comparison, §9.4 `allowed-tools` field
+- **Improved**: description authoring guide (100–300 chars, pushy style, anti-undertrigger)
+- **Deprivatized**: removed all private SAP business examples and local path references, replaced with generic domain examples (Git commit generator, AWS S3 knowledge base)
+- **Removed**: `archives/` legacy version archive directory (history preserved in git)
 
 ### v2.0.0 — 2026-05-05
 
-初始公开版本，整合 CLI 和文档 SKILL 规范。
+Initial public version, consolidates CLI and docs SKILL standards.
 
-## 反馈与贡献
+## Feedback & Contributing
 
-如发现规范与官方 skill-creator 存在冲突，或有未覆盖的工程场景，欢迎提 issue。
+If you find a conflict between this SKILL's standards and the official skill-creator, or encounter engineering scenarios not covered here, please open an issue.
 
 ## License
 

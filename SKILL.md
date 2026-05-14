@@ -8,110 +8,168 @@ description: |
 license: MIT
 allowed-tools: [Read]
 metadata:
-  version: "2.1.0"
+  version: "2.2.0"
   type: docs
   valid_until: evergreen
+  source_urls:
+    - "https://github.com/anthropics/skills"
+    - "https://click.palletsprojects.com/"
+    - "https://typer.tiangolo.com/"
+    - "https://docs.astral.sh/uv/"
 ---
 
-# SKILL 开发规范
+# SKILL Engineering Standards
 
-这个 SKILL 是你项目的 SKILL 质量标准库。在创建或修改任何 SKILL 时，**应当与 skill-creator 同时加载**，本 SKILL 提供工程规范，skill-creator 提供开发流程。
+This SKILL is your project's quality standards library for building AI Agent Skills. When creating or modifying any SKILL, **load this alongside skill-creator** — this SKILL provides engineering standards, skill-creator provides the development workflow.
 
-## 本 SKILL 的定位
+## What This SKILL Does
 
-本 SKILL **不替代** Anthropic 官方 skill-creator，而是其**工程化补充**。
-两者是互补关系，**应当同时加载、协同使用**：
+This SKILL does **not replace** the official Anthropic skill-creator. It is its **engineering complement**. The two are complementary and **should be loaded together**:
 
-| 关注层面 | 由谁负责 |
-|---------|---------|
-| 开发流程（需求捕获、访谈、测试、评估、迭代、打包） | **skill-creator**（官方） |
-| 设计哲学（Progressive Disclosure、写作风格） | **skill-creator**（官方） |
-| 评估工具链（eval-viewer、run_loop、benchmark） | **skill-creator**（官方） |
-| Claude.ai / Cowork 环境适配 | **skill-creator**（官方） |
-| CLI SKILL 工程规范（错误码、输出协议、配置、权限） | **本 SKILL** |
-| Output Schema（SKILL 间合约、避免 compose 幻觉） | **本 SKILL** |
-| 文档 SKILL 时效与质量（valid_until、golden-set） | **本 SKILL** |
-| frontmatter 合规细节（metadata 嵌套、allowed-tools） | **本 SKILL** |
-| Semver 版本化与 Breaking change 流程 | **本 SKILL** |
-| 质量检查清单（CLI/docs/通用三栏） | **本 SKILL** |
+| Concern | Owner |
+|---------|-------|
+| Development workflow (requirements capture, interviews, testing, evaluation, iteration, packaging) | **skill-creator** (official) |
+| Design philosophy (Progressive Disclosure, writing style) | **skill-creator** (official) |
+| Evaluation toolchain (eval-viewer, run_loop, benchmark) | **skill-creator** (official) |
+| Claude.ai / Cowork environment adaptation | **skill-creator** (official) |
+| CLI SKILL engineering standards (exit codes, output protocol, config, permissions) | **this SKILL** |
+| Output Schema (inter-SKILL contracts, reducing compose hallucinations) | **this SKILL** |
+| Docs SKILL freshness and quality (valid_until, golden-set) | **this SKILL** |
+| Frontmatter compliance details (metadata nesting, allowed-tools) | **this SKILL** |
+| Semver versioning and Breaking Change workflow | **this SKILL** |
+| Quality checklist (CLI / docs / general — three columns) | **this SKILL** |
 
-**不要单独使用本 SKILL** —— 它假设你已经按 skill-creator 的工作流走完
-"需求捕获 → 草稿 → 测试 → 迭代"，本 SKILL 在每个阶段补充工程规范。
-完整 hand-off 索引见 `references/standard.md` §0.5。
+**Do NOT use this SKILL alone** — it assumes you have already followed skill-creator's workflow through "requirements capture → draft → testing → iteration". This SKILL supplements engineering standards at each stage.
+Full hand-off index: see §0.5 below.
 
-## 使用步骤
+## §0.5 Hand-off Index with skill-creator
 
-创建新 SKILL 时按此顺序执行：
+### Forward hand-off (skill-creator → this SKILL)
 
-1. 读 `references/standard.md` §1 — 确定类型（CLI / 文档 / 复合）
-2. 读 §2.0 — 理解渐进披露原则（决定内容放哪一层）
-3. 读 §2.2 — 写 description（触发词优先 + pushy 写法 + 负例排除）
-4. 读 §3 — 确认目录结构（CLI 用 `docs/`，文档 SKILL 用 `references/`）
-5. 读 §8、§9 — 填写 output_schema 和 permissions（放入 metadata 字段）
-6. 读 §9.4 — 填写 allowed-tools（frontmatter 顶层字段）
-7. 读 §10 — 写最小测试集（CliRunner 单测 / golden-set）
-8. 用 §12 检查清单验收后，交给 skill-creator 打包
+| skill-creator stage | Hand off to this SKILL |
+|---------------------|------------------------|
+| After Capture Intent | Read §1 to choose SKILL type (CLI / docs / hybrid) |
+| Write the SKILL.md | Read `references/skillmd-authoring.md` §2.0–2.2 (progressive disclosure + description writing) |
+| Configure frontmatter | Read `references/permissions.md` §9 (permissions + allowed-tools) |
+| Choose CLI implementation language | Read `references/cli-templates.md` §4.0 (language-agnostic conventions), §4.6 (multi-language comparison) |
+| Need output templates / config boilerplates / payload samples | Read `references/project-structure.md` §3.5 (assets/ directory spec) |
+| Test Cases stage | CLI SKILL: read `references/testing.md` §10.1 (CliRunner); Docs SKILL: read §10.2 (golden-set) |
+| Iterate stage (bug fixing) | Read `references/cli-runtime.md` §7 (error handling), §8 (Output Schema) |
+| Before packaging | Read `references/quality-and-release.md` §12 quality checklist |
+| Version upgrade | Read `references/quality-and-release.md` §11 (Semver + breaking change workflow) |
+| MCP integration (optional) | Read `references/quality-and-release.md` §11.4 (MCP annotation alignment) |
 
-修改已有 SKILL 时：
-- 直接用 §12 检查清单审查
-- 补全缺失的 `metadata.output_schema` 或 `metadata.permissions`
-- 确认 `allowed-tools` 已在顶层声明
-- 对照 §2.2 优化 description 触发词写法
+### Reverse hand-off (this SKILL → skill-creator)
 
-## 与 skill-creator 的衔接时机
+| Trigger | Hand off to skill-creator |
+|---------|--------------------------|
+| Need requirements interview / scope clarification | "Capture Intent + Interview" section |
+| Need to run with-skill / baseline comparison | "Running and evaluating test cases" |
+| Need to measure description trigger rate | "Description optimization" (run_loop.py) |
+| Need to package into .skill file | "Package and Present" (package_skill.py) |
+| Need Claude.ai / Cowork environment adaptation | "Claude.ai-specific instructions" / "Cowork-Specific Instructions" |
 
-**本 SKILL → skill-creator**：
-- 完成 §1–§3（类型决策 + SKILL.md 草稿 + 目录）后，调用 skill-creator 的 "Capture Intent + Interview" 阶段确认需求
-- 完成 §10 最小测试集后，调用 skill-creator 的 "Run and evaluate test cases" 跑评估
-- 完成 §12 检查清单后，调用 skill-creator 的 `package_skill.py` 打包
+---
 
-**skill-creator → 本 SKILL**：
-- skill-creator 写 SKILL.md 时遇到 description 写法疑问 → 读本 SKILL §2.2
-- skill-creator 跑评估发现 undertrigger → 读本 SKILL §2.2 的"pushy 写法"优化触发词
-- skill-creator 准备打包前 → 读本 SKILL §12 检查清单
-- skill-creator 配置 `allowed-tools` 时 → 读本 SKILL §9.4
+## §1 SKILL Type Decision
 
-## 关键规范速查
+### Classification
 
-### description 写法（最高优先级）
+| Type | Purpose | Use When | Tech Stack |
+|------|---------|----------|------------|
+| **CLI SKILL** | Wraps CLI tools or APIs | System operations, API integrations, data processing | Click / Typer |
+| **Docs SKILL** | Wraps knowledge bases and reference docs | Domain knowledge, API docs, best practices | Markdown + code |
+| **Hybrid SKILL** | CLI + Docs combined | Scenarios requiring both operations and knowledge | CLI + Docs |
 
-description 是 Agent 路由的核心依据，必须：
-- **以动词 + 场景列举开头**，不以名词开头
-- **包含 1-2 个负例排除**，帮助 Agent 避免误触发
-- **长度 100–300 字为宜**（硬上限 1024 字符），关键词前置（前 30 字内出现主要触发词）
-- **禁含 `<` 或 `>`**：会被 quick_validate.py 拒绝（用 `{` `}` 替代占位符）
-- **偏激进（pushy）写法**：主动列举多种用户措辞，对抗 Claude 默认的 undertrigger 倾向
+### Decision Matrix
 
-好的写法（CLI 类型）：
+**Choose CLI SKILL when**:
+- Executing system commands or operations
+- Calling REST APIs for data interaction
+- Wrapping existing command-line tools
+- Needing CRUD operations
+- Data format conversion or processing
+
+**Choose Docs SKILL when**:
+- Encapsulating domain knowledge and best practices
+- API reference documentation lookups
+- Coding conventions and pattern libraries
+- Architecture design guides
+- Troubleshooting guides
+
+**Choose Hybrid SKILL when**:
+- Need both knowledge queries and operational execution
+- Docs contain executable code snippets
+- Dynamic queries and real-time operations need to be combined
+
+See official examples: [Anthropic skill-examples repository](https://github.com/anthropics/skills)
+
+---
+
+## Usage Steps
+
+When creating a new SKILL, follow this order:
+
+1. Read §1 (this file) — decide type (CLI / docs / hybrid)
+2. Read `references/skillmd-authoring.md` §2.0 — understand Progressive Disclosure principles
+3. Read `references/skillmd-authoring.md` §2.2 — write description (trigger-first + pushy style + negative examples)
+4. Read `references/project-structure.md` §3 — set up directory structure
+5. Read `references/cli-runtime.md` §8, `references/permissions.md` §9 — declare output_schema and permissions
+6. Read `references/permissions.md` §9.4 — declare allowed-tools (top-level frontmatter field)
+7. Read `references/testing.md` §10 — write minimal test suite
+8. Use `references/quality-and-release.md` §12 checklist to validate, then hand to skill-creator to package
+
+When modifying an existing SKILL:
+- Directly audit using `references/quality-and-release.md` §12 checklist
+- Fill in missing `metadata.output_schema` or `metadata.permissions`
+- Confirm `allowed-tools` is declared at the top level
+- Optimize description trigger keywords against `references/skillmd-authoring.md` §2.2
+
+---
+
+## Quick Reference
+
+### description writing (highest priority)
+
+The description is the core basis for Agent routing — how it is written directly determines recall rate. It must:
+- **Start with verb + scenario enumeration**, not a noun
+- **Include 1–2 negative exclusions** to help Agent avoid false triggers
+- **100–300 words recommended** (hard limit: 1024 chars); keep key triggers in the first 30 words
+- **No `<` or `>`**: will be rejected by quick_validate.py (use `{` `}` for placeholders)
+- **Pushy style**: Claude defaults to undertriggering (not using SKILLs when it should). Actively list multiple user phrasings, related concepts, and implicit scenarios — not just a description of functionality.
+
+Good example (CLI type):
 ```
-当用户需要从 git diff、staged changes 生成符合 Conventional Commits 规范的提交消息时使用此 SKILL。
-覆盖：补全 commit 类型前缀（feat/fix/refactor/docs）、推断 scope、生成多行 body。
-也用于：用户问"这次改动该怎么写 commit"、"帮我写个规范的提交信息"。
-不适用于：实际执行 git commit、修改 git 配置。
+Use this skill when generating Conventional Commits-compliant commit messages from git diff, staged changes, or change descriptions.
+Covers: completing commit type prefixes (feat/fix/refactor/docs), inferring scope from multi-file diffs, generating multi-line commit bodies, appending BREAKING CHANGE annotations.
+Also triggers when users say "how should I write this commit", "help me write a proper commit message", "format this as conventional commits".
+Do NOT use for: actually running git commit, modifying git config, merging PRs.
 ```
 
-差的写法：
+Bad example:
 ```
-Git commit 工具，封装了 commit 消息生成功能。
+Git commit tool that wraps commit message generation.
 ```
 
-### frontmatter 合规字段
+Full examples and rules → `references/skillmd-authoring.md` §2.2
 
-打包验证只允许顶层字段：`name, description, license, allowed-tools, metadata, compatibility`
+### Frontmatter compliant fields
 
-自定义字段（output_schema、permissions、valid_until 等）一律放入 `metadata`；
-`allowed-tools` 是顶层合规字段，**不放在** metadata 下：
+Packaging validation only allows top-level fields: `name, description, license, allowed-tools, metadata, compatibility`
+
+All custom fields (output_schema, permissions, valid_until, etc.) go inside `metadata`;
+`allowed-tools` is a top-level compliant field — **do NOT put it inside** metadata:
 
 ```yaml
 ---
 name: my-skill
-description: "当用户需要... 不适用于..."
+description: "Use this skill when... Do NOT use for..."
 license: MIT
 allowed-tools: [Read, Bash]
 metadata:
   version: "1.0.0"
   type: cli          # cli | docs | hybrid
-  valid_until: "2026-12-31"   # 或 "evergreen"
+  valid_until: "2026-12-31"   # or "evergreen"
   source_urls:
     - "https://docs.example.com"
   output_schema:
@@ -125,52 +183,50 @@ metadata:
 ---
 ```
 
-### 目录命名约定
+Full template → `references/skillmd-authoring.md` §2.3
 
-| SKILL 类型 | 外部参考资料目录 | 知识库目录 |
-|------------|----------------|----------|
+### Directory naming conventions
+
+| SKILL type | External reference dir | Knowledge base dir |
+|------------|----------------------|-------------------|
 | CLI SKILL | `docs/` | — |
-| 文档 SKILL | — | `references/` |
-| 复合 SKILL | `docs/` | `references/` |
+| Docs SKILL | — | `references/` |
+| Hybrid SKILL | `docs/` | `references/` |
 
-> CLI SKILL 不使用 `references/`，避免与文档 SKILL 的知识库目录混淆。
+> CLI SKILLs do NOT use `references/` — avoids confusion with the docs SKILL knowledge base directory.
 
-### 错误输出规范
+Full structure diagrams → `references/project-structure.md` §3.1–§3.4
 
-所有 CLI SKILL 统一使用 JSON 格式输出错误，正常结果 → stdout，错误 → stderr：
+### Error output convention
+
+All CLI SKILLs use JSON format for error output. Normal results → stdout, errors → stderr:
 
 ```python
-# 正常
+# Normal output
 click.echo(json.dumps({"status": "ok", "data": result}))
 
-# 错误
+# Error output
 click.echo(json.dumps({"status": "error", "code": 1, "message": "..."}), err=True)
 sys.exit(1)
 ```
 
-Exit code 约定：0=成功，1=配置错误，2=网络错误，3=权限错误，4=参数错误，99=未预期错误。
+Exit code convention: 0=success, 1=config error, 2=network error, 3=permission error, 4=param error, 99=unexpected error.
 
-## 完整规范
+Full spec → `references/cli-runtime.md` §7
 
-详细内容见 `references/standard.md`，包含：
+---
 
-- §0 Agent 使用步骤
-- §1 SKILL 类型与决策矩阵
-- §2.0 渐进披露原则（L1/L2/L3 分层）
-- §2.1–§2.4 SKILL.md 完整规范（含 description 模板）
-- §3 项目目录结构（扁平 / 模块化 / 文档 / 复合）
-- §4.0 CLI 核心约定（语言无关）
-- §4.1–§4.5 CLI SKILL 开发（Click / Typer 完整模板）
-- §4.6 多语言对照（Bash / Node.js / Go / Rust）
-- §5 文档 SKILL 开发（时效机制、内容模板）
-- §6 配置管理（优先级、类模板）
-- §7 错误处理（exit code、JSON 格式）
-- §8 输出 Schema（TypedDict + JSON Schema）
-- §9.1–§9.3 权限与沙箱声明
-- §9.4 allowed-tools 字段（顶层，非 metadata 内）
-- §10 测试规范（CliRunner 模板、golden-set）
-- §11 版本化与兼容策略（semver、MCP annotation）
-- §12 质量检查清单（CLI / 文档 / 通用三栏）
-- §13 SKILL 最小模板
+## Reference Files Index
 
-读取时机：遇到具体问题（如"CliRunner 怎么写"）时再读对应章节，不必全文加载。
+Read the relevant file on demand — **no need to load everything**:
+
+| File | Coverage | When to read |
+|------|---------|-------------|
+| `references/skillmd-authoring.md` | §2.0 Progressive Disclosure; §2.1 required fields; §2.2 description writing; §2.3 full SKILL.md template; §2.4 docs SKILL specifics | When writing or reviewing any SKILL.md |
+| `references/project-structure.md` | §3.1–3.4 four structure diagrams (flat/modular/docs/hybrid); §3.5 assets/ spec (directory boundaries, placeholders, security) | When designing directory structure or needing output templates |
+| `references/cli-templates.md` | §4.0 language-agnostic conventions; §4.1 uv dependency management; §4.3 Click full template; §4.4 Typer template; §4.5 Click quick ref; §4.6 multi-language comparison | When implementing a CLI SKILL |
+| `references/docs-development.md` | §5.1 content organization; §5.2 quality standards; §5.3 freshness mechanism (valid_until); §5.4 doc templates | When implementing a Docs SKILL |
+| `references/cli-runtime.md` | §6 config management (priority + class template); §7 error handling (exit codes + JSON format); §8 Output Schema (TypedDict + JSON Schema) | When implementing config loading, error handling, or declaring output structure |
+| `references/permissions.md` | §9.1–9.3 permissions fields; §9.4 allowed-tools (top-level field) | When declaring permission boundaries |
+| `references/testing.md` | §10.1 CliRunner unit test template; §10.2 golden-set Q&A pairs; §10.3 test directory; §10.4 minimum test requirements | When writing tests |
+| `references/quality-and-release.md` | §11 Semver + Breaking Change + MCP annotation; §12 quality checklist (CLI/docs/general); §13 minimal templates; Appendix A references | Before packaging or on version upgrades |

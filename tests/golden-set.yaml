@@ -1,0 +1,42 @@
+skill: skill-dev-standard
+version: "2.2.0"
+cases:
+  - id: description-writing
+    query: "How do I write a good SKILL description to avoid undertriggering?"
+    expected_keywords: ["verb", "pushy", "negative", "100", "300", "undertrigger"]
+    must_not_contain: []
+
+  - id: output-schema-placement
+    query: "Where does output_schema go in the SKILL.md frontmatter?"
+    expected_keywords: ["metadata", "output_schema", "format"]
+    must_not_contain: ["top-level", "allowed-tools"]
+
+  - id: allowed-tools-placement
+    query: "Is allowed-tools inside metadata or at the top level?"
+    expected_keywords: ["top-level", "metadata", "sibling"]
+    must_not_contain: []
+
+  - id: exit-codes
+    query: "What exit codes should a CLI SKILL use?"
+    expected_keywords: ["0", "1", "2", "99", "config", "network"]
+    must_not_contain: []
+
+  - id: docs-vs-references
+    query: "What is the difference between docs/ and references/ in a SKILL?"
+    expected_keywords: ["CLI", "docs", "references", "knowledge base"]
+    must_not_contain: []
+
+  - id: four-directory-types
+    query: "What are the four types of directories in a SKILL project?"
+    expected_keywords: ["scripts", "references", "docs", "assets"]
+    must_not_contain: []
+
+  - id: skill-type-decision
+    query: "Should I build a CLI SKILL or a docs SKILL?"
+    expected_keywords: ["CLI", "Docs", "Hybrid", "API", "knowledge"]
+    must_not_contain: []
+
+  - id: permissions-field
+    query: "How do I declare what network endpoints my SKILL uses?"
+    expected_keywords: ["network_endpoints", "permissions", "metadata"]
+    must_not_contain: ["wildcards", "*"]
