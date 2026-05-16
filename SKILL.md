@@ -1,8 +1,7 @@
 ---
 name: skill-dev-standard
 description: |
-  Use when creating, modifying, or reviewing any SKILL. Covers: frontmatter spec, description style (pushy, 100-300 chars), metadata nesting, allowed-tools, versioning.
-  Also trigger: SKILL structure questions, frontmatter validation errors, description writing. Do NOT use for: skill-creator workflow, packaging, or external APIs.
+  Use when building, reviewing, or fixing any SKILL. Covers: frontmatter spec, description style (100-300 chars, pushy), metadata nesting, allowed-tools, CLI standards, versioning. Trigger for: SKILL.md authoring, undertriggering, structure questions. Do NOT use for: skill-creator workflow.
 license: MIT
 allowed-tools: [Read]
 metadata:
