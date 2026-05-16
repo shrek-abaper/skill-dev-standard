@@ -1,10 +1,8 @@
 ---
 name: skill-dev-standard
 description: |
-  Use this skill whenever creating a new SKILL, modifying an existing SKILL, reviewing SKILL quality, or writing SKILL.md content.
-  Covers: SKILL.md frontmatter structure, description trigger-word writing (pushy style, 100-300 chars), metadata nesting rules, output_schema declaration, permissions fields, allowed-tools selection, test specs, versioning strategy, and progressive disclosure design.
-  Also trigger when the user asks about SKILL structure, SKILL directory layout, how to write a good description, what fields a SKILL.md should have, how to avoid undertriggering, frontmatter validation errors, or how to register allowed-tools.
-  Do NOT use for: actually running skill-creator workflow, packaging a skill (use skill-creator), or querying external APIs.
+  Use when creating, modifying, or reviewing any SKILL. Covers: frontmatter spec, description style (pushy, 100-300 chars), metadata nesting, allowed-tools, versioning.
+  Also trigger: SKILL structure questions, frontmatter validation errors, description writing. Do NOT use for: skill-creator workflow, packaging, or external APIs.
 license: MIT
 allowed-tools: [Read]
 metadata:
@@ -16,6 +14,13 @@ metadata:
     - "https://click.palletsprojects.com/"
     - "https://typer.tiangolo.com/"
     - "https://docs.astral.sh/uv/"
+  tags:
+    - skill-development
+    - standards
+    - engineering
+    - frontmatter
+    - cli
+    - docs
 ---
 
 # SKILL Engineering Standards
