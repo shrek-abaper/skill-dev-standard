@@ -1,8 +1,55 @@
-[English](README.md)
+<div align="center">
 
-# skill-dev-standard
+# 📐 skill-dev-standard
 
-> 工程级 SKILL 开发规范，与 Anthropic 官方 [skill-creator](https://github.com/anthropics/skills) 协同使用。
+[English](README.md) &nbsp;·&nbsp; **中文**
+
+### 智能体 SKILL 开发的工程级规范
+
+#### *Anthropic 官方 skill-creator 的工程化补充——退出码、输出合约、权限、版本化与发布检查清单。*
+
+> 两个 SKILL 必须同时加载：skill-creator 负责工作流（访谈、评估、迭代、打包），skill-dev-standard 负责工程化（CLI 约定、Output Schema、文档时效、frontmatter 合规、Semver、质量门禁）。只用其中任意一个都会留下盲区。
+
+**退出码 &nbsp;·&nbsp; Output Schema &nbsp;·&nbsp; 配置与凭证 &nbsp;·&nbsp; 权限与沙箱**
+
+**渐进披露 &nbsp;·&nbsp; 对抗 undertrigger 的 description &nbsp;·&nbsp; Golden-Set 评估 &nbsp;·&nbsp; Semver 门禁**
+
+**CLI · 文档 · 混合 &nbsp;·&nbsp; Click / Typer 模板 &nbsp;·&nbsp; 7 个聚焦参考文件 &nbsp;·&nbsp; v2.2.0**
+
+#### 为真正交付 SKILL 的作者而建
+
+[![GitHub Stars](https://img.shields.io/github/stars/shrek-abaper/skill-dev-standard?style=flat-square&color=FFD700&logo=github&logoColor=white&label=Stars)](https://github.com/shrek-abaper/skill-dev-standard/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/shrek-abaper/skill-dev-standard?style=flat-square&color=6E40C9&logo=github&logoColor=white&label=Forks)](https://github.com/shrek-abaper/skill-dev-standard/network/members) [![Contributors](https://img.shields.io/github/contributors/shrek-abaper/skill-dev-standard?style=flat-square&color=2EA043&logo=github&logoColor=white)](https://github.com/shrek-abaper/skill-dev-standard/graphs/contributors) [![Last Commit](https://img.shields.io/github/last-commit/shrek-abaper/skill-dev-standard?style=flat-square&logo=github&logoColor=white)](https://github.com/shrek-abaper/skill-dev-standard/commits/main) [![Version](https://img.shields.io/badge/version-v2.2.0-0066CC?style=flat-square)](./changelog.md) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](./README.zh-CN.md#license) [![Pairs With](https://img.shields.io/badge/pairs%20with-skill--creator-DA291C?style=flat-square&logo=anthropic&logoColor=white)](https://github.com/anthropics/skills)
+
+[![SKILL.md](https://img.shields.io/badge/SKILL.md-000000?style=for-the-badge&logo=markdown&logoColor=white)](./SKILL.md)
+[![Changelog](https://img.shields.io/badge/Changelog-v2.2.0-2EA043?style=for-the-badge&logo=keepachangelog&logoColor=white)](./changelog.md)
+[![skill-creator](https://img.shields.io/badge/Anthropic-skill--creator-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://github.com/anthropics/skills)
+
+```bash
+# 打包后放入 Agent 的 skills 目录
+python /path/to/skill-creator/scripts/package_skill.py .
+cp skill-dev-standard.skill ~/.claude/skills/
+```
+
+</div>
+
+大多数 SKILL 在生产中失败，不是因为提示词写得不好，而是因为工程化缺失：调用方期待 JSON，脚本却输出大段自然语言；写操作没有 dry-run 门禁；凭证被硬编码进代码；到了打包时，谁也说不清"完成"的标准是什么。
+
+skill-dev-standard 是官方 skill-creator 旁边的工程化层：语言无关的 CLI 合约（退出码规范、JSON Output Schema、配置优先级与凭证规则）、对抗 undertrigger 的 SKILL.md 写法、文档时效机制（`valid_until`、`source_urls`、golden-set 问答对）、带 breaking change 流程的 Semver，以及每次发布必过的 §12 质量检查清单。skill-creator 依然是工作流引擎，本 SKILL 补上它刻意不覆盖的工程缺口。
+
+> [!NOTE]
+> **是补充，不是替代。** skill-creator 负责访谈、评估工具链与打包合规；skill-dev-standard 负责 CLI/文档工程规范与质量检查清单。每次阶段切换都查 SKILL.md 的 §0.5 hand-off 索引——它明确规定了每个章节归谁负责。
+
+**适合谁：**
+
+- **编写 CLI 工具的 SKILL 作者** —— 退出码规范、Output Schema、Click/Typer 模板、配置与权限约定，以及 CliRunner 测试
+- **需要统一 SKILL 规范的团队** —— 一份 frontmatter 合约、一套 Semver 策略、一份发布检查清单，适用于所有交付的 SKILL
+- **文档类 SKILL 维护者** —— `valid_until` / `source_urls` 时效规则与 golden-set 覆盖验证，让参考知识不会悄悄过期
+- **SKILL 审查者与维护者** —— §12 三栏检查清单（CLI / 文档 / 通用）作为打包前门禁
+- **封装内部 API 的企业集成开发者** —— 凭证安全、写操作 dry-run 先行、下游智能体可依赖的机器可读输出
+
+**[定位](#定位)** &nbsp;·&nbsp; **[安装](#安装)** &nbsp;·&nbsp; **[Quick Start](#quick-start)** &nbsp;·&nbsp; **[内容结构](#内容结构)** &nbsp;·&nbsp; **[关键规范](#关键规范一览)** &nbsp;·&nbsp; **[Changelog](#changelog)**
+
+---
 
 ## 定位
 

@@ -1,8 +1,55 @@
-[中文](README.zh-CN.md)
+<div align="center">
 
-# skill-dev-standard
+# 📐 skill-dev-standard
 
-> Engineering-grade SKILL development standards, designed to complement the official Anthropic [skill-creator](https://github.com/anthropics/skills).
+**English** &nbsp;·&nbsp; [中文](README.zh-CN.md)
+
+### Engineering-Grade Standards for Agent SKILL Development
+
+#### *The engineering complement to Anthropic's official skill-creator — exit codes, output contracts, permissions, versioning, and a release checklist.*
+
+> Load both SKILLs together: skill-creator owns the workflow (interviews, evals, iteration, packaging); skill-dev-standard owns the engineering (CLI conventions, Output Schema, docs freshness, frontmatter compliance, Semver, quality gates). One without the other leaves blind spots.
+
+**Exit Codes &nbsp;·&nbsp; Output Schema &nbsp;·&nbsp; Config & Credentials &nbsp;·&nbsp; Permissions & Sandbox**
+
+**Progressive Disclosure &nbsp;·&nbsp; Anti-Undertrigger Descriptions &nbsp;·&nbsp; Golden-Set Evals &nbsp;·&nbsp; Semver Gates**
+
+**CLI · Docs · Hybrid &nbsp;·&nbsp; Click & Typer Templates &nbsp;·&nbsp; 7 Focused References &nbsp;·&nbsp; v2.2.0**
+
+#### Built for SKILL Authors Who Ship
+
+[![GitHub Stars](https://img.shields.io/github/stars/shrek-abaper/skill-dev-standard?style=flat-square&color=FFD700&logo=github&logoColor=white&label=Stars)](https://github.com/shrek-abaper/skill-dev-standard/stargazers) [![GitHub Forks](https://img.shields.io/github/forks/shrek-abaper/skill-dev-standard?style=flat-square&color=6E40C9&logo=github&logoColor=white&label=Forks)](https://github.com/shrek-abaper/skill-dev-standard/network/members) [![Contributors](https://img.shields.io/github/contributors/shrek-abaper/skill-dev-standard?style=flat-square&color=2EA043&logo=github&logoColor=white)](https://github.com/shrek-abaper/skill-dev-standard/graphs/contributors) [![Last Commit](https://img.shields.io/github/last-commit/shrek-abaper/skill-dev-standard?style=flat-square&logo=github&logoColor=white)](https://github.com/shrek-abaper/skill-dev-standard/commits/main) [![Version](https://img.shields.io/badge/version-v2.2.0-0066CC?style=flat-square)](./changelog.md) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](./README.md#license) [![Pairs With](https://img.shields.io/badge/pairs%20with-skill--creator-DA291C?style=flat-square&logo=anthropic&logoColor=white)](https://github.com/anthropics/skills)
+
+[![SKILL.md](https://img.shields.io/badge/SKILL.md-000000?style=for-the-badge&logo=markdown&logoColor=white)](./SKILL.md)
+[![Changelog](https://img.shields.io/badge/Changelog-v2.2.0-2EA043?style=for-the-badge&logo=keepachangelog&logoColor=white)](./changelog.md)
+[![skill-creator](https://img.shields.io/badge/Anthropic-skill--creator-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://github.com/anthropics/skills)
+
+```bash
+# Package, then drop into your Agent's skills directory
+python /path/to/skill-creator/scripts/package_skill.py .
+cp skill-dev-standard.skill ~/.claude/skills/
+```
+
+</div>
+
+Most SKILLs fail in production not because of bad prompts, but because of bad engineering: scripts print prose where callers expect JSON, write operations run without dry-run gates, credentials end up hardcoded, and nothing defines what "done" looks like at packaging time.
+
+skill-dev-standard is the engineering layer beside the official skill-creator: a language-agnostic CLI contract (exit codes, JSON Output Schema, config priority and credential rules), SKILL.md authoring rules that resist undertriggering, a docs freshness mechanism (`valid_until`, `source_urls`, golden-set Q&A), Semver with a breaking-change workflow, and the §12 quality checklist that gates every release. skill-creator remains the workflow engine — this SKILL fills the engineering gaps it deliberately doesn't cover.
+
+> [!NOTE]
+> **A complement, not a replacement.** skill-creator owns interviews, the eval toolchain, and packaging compliance; skill-dev-standard owns CLI/docs engineering standards and the quality checklist. Consult the §0.5 hand-off index in SKILL.md at every stage transition — it states exactly which sections belong to whom.
+
+**Who it's for:**
+
+- **SKILL authors building CLI tools** — exit-code spec, Output Schema, Click/Typer templates, config and permissions conventions, plus CliRunner tests
+- **Teams standardizing agent skills** — one frontmatter contract, one Semver policy, one release checklist across every SKILL they ship
+- **Docs-skill maintainers** — `valid_until` / `source_urls` freshness rules and golden-set coverage, so reference knowledge doesn't silently rot
+- **Skill reviewers and maintainers** — the §12 three-column checklist (CLI / docs / universal) as the pre-packaging gate
+- **Enterprise integrators wrapping internal APIs** — credential safety, dry-run-first write operations, and machine-readable output downstream agents can rely on
+
+**[Positioning](#positioning)** &nbsp;·&nbsp; **[Installation](#installation)** &nbsp;·&nbsp; **[Quick Start](#quick-start)** &nbsp;·&nbsp; **[Content Structure](#content-structure)** &nbsp;·&nbsp; **[Key Specs](#key-specs-at-a-glance)** &nbsp;·&nbsp; **[Changelog](#changelog)**
+
+---
 
 ## Positioning
 
